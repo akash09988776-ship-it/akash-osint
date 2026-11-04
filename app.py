@@ -1,7 +1,7 @@
 import os, sqlite3, secrets, requests
 from functools import wraps
 from datetime import datetime
-from flask import Flask, render_template, request, redirect, url_for, session, flash, abort, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, abort, jsonify, send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 
@@ -51,27 +51,37 @@ def admin_required(fn):
         return fn(*a, **kw)
     return wrapper
 
+# === PWA FILES ROUTES ===
+@app.route('/logo.png')
+def serve_logo():
+    return send_from_directory(BASE, 'logo.png')
+
+@app.route('/manifest.json')
+def serve_manifest():
+    return send_from_directory('static', 'manifest.json')
+
+@app.route('/sw.js')
+def serve_sw():
+    return send_from_directory('static', 'sw.js')
+
+# === APP ROUTES ===
 @app.route('/')
 def home():
     if not session.get('user_id'): return redirect(url_for('login'))
     return redirect(url_for('dashboard'))
 
-# ================= AUTH =================
 @app.route('/register', methods=['GET','POST'])
 def register():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
         username = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
-        
         if not name or not username or len(password) < 8:
             flash('Please fill all fields. Password must be 8+ chars.')
             return redirect('/register')
-        
         with db() as c:
             try:
-                c.execute('INSERT INTO users (public_id, name, username, password_hash, role) VALUES (?,?,?,?,?)',
-                          (generate_user_id(), name, username, generate_password_hash(password), 'user'))
+                c.execute('INSERT INTO users (public_id, name, username, password_hash, role) VALUES (?,?,?,?,?)', (generate_user_id(), name, username, generate_password_hash(password), 'user'))
                 flash('Account created. Login now.')
                 return redirect('/login')
             except sqlite3.IntegrityError:
@@ -84,12 +94,10 @@ def login():
     if request.method == 'POST':
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
-        
         if email == ADMIN_USERNAME.lower() and secrets.compare_digest(password, ADMIN_PASSWORD):
             session.clear()
             session['role'] = 'admin'
             return redirect('/admin')
-        
         with db() as c:
             user = c.execute('SELECT * FROM users WHERE username=?', (email,)).fetchone()
             if user and check_password_hash(user['password_hash'], password):
@@ -105,7 +113,6 @@ def logout():
     session.clear()
     return redirect(url_for('login'))
 
-# ================= DASHBOARD & LOOKUP =================
 @app.route('/dashboard', methods=['GET', 'POST'])
 @login_required
 def dashboard():
@@ -136,90 +143,5 @@ def profile_photo():
         c.execute('UPDATE users SET photo=? WHERE id=?', (name, session['user_id']))
     return redirect(request.referrer or url_for('dashboard'))
 
-# ================= HOMIES GROUP =================
-@app.route('/group', methods=['GET', 'POST'])
-@login_required
-def group():
-    user_id = session['user_id']
-    with db() as c:
-        # Check membership
-        is_member = c.execute('SELECT 1 FROM group_members WHERE user_id=?', (user_id,)).fetchone()
-        
-        if request.method == 'POST' and request.form.get('action') == 'join':
-            c.execute('INSERT OR IGNORE INTO group_members (user_id) VALUES (?)', (user_id,))
-            return redirect(url_for('group'))
-            
-        if request.method == 'POST' and request.form.get('action') == 'leave':
-            c.execute('DELETE FROM group_members WHERE user_id=?', (user_id,))
-            return redirect(url_for('dashboard'))
-            
-        if request.method == 'POST' and request.form.get('message'):
-            if not is_member:
-                flash('Join the group to send messages.')
-            else:
-                msg = request.form.get('message', '').strip()
-                if msg:
-                    c.execute('INSERT INTO group_messages (user_id, message) VALUES (?, ?)', (user_id, msg))
-                return redirect(url_for('group'))
-                
-        # Fetch messages with user details
-        messages = c.execute('''
-            SELECT m.*, u.name, u.public_id, u.photo 
-            FROM group_messages m 
-            JOIN users u ON u.id = m.user_id 
-            ORDER BY m.id ASC
-        ''').fetchall()
-        
-        members_count = c.execute('SELECT COUNT(*) FROM group_members').fetchone()[0]
-        
-    return render_template('group.html', messages=messages, is_member=is_member, members_count=members_count)
-
-# ================= ADMIN CONNECT =================
-@app.route('/assistance', methods=['GET', 'POST'])
-@login_required
-def assistance():
-    user_id = session['user_id']
-    if request.method == 'POST':
-        msg = request.form.get('message', '').strip()
-        if msg:
-            with db() as c:
-                c.execute('INSERT INTO private_messages (user_id, sender, message) VALUES (?, ?, ?)', (user_id, 'user', msg))
-        return redirect(url_for('assistance'))
-        
-    with db() as c:
-        messages = c.execute('SELECT * FROM private_messages WHERE user_id=? ORDER BY id ASC', (user_id,)).fetchall()
-        c.execute('UPDATE private_messages SET is_read=1 WHERE user_id=? AND sender="admin"', (user_id,))
-        c.commit()
-    return render_template('chat.html', messages=messages)
-
-# ================= ADMIN PANEL =================
-@app.route('/admin')
-@admin_required
-def admin():
-    with db() as c:
-        users = c.execute('SELECT * FROM users ORDER BY id DESC').fetchall()
-        unread = c.execute('SELECT COUNT(*) FROM private_messages WHERE sender="user" AND is_read=0').fetchone()[0]
-    return render_template('admin.html', users=users, unread=unread)
-
-@app.route('/admin/chat/<int:user_id>', methods=['GET', 'POST'])
-@admin_required
-def admin_chat(user_id):
-    if request.method == 'POST':
-        msg = request.form.get('message', '').strip()
-        if msg:
-            with db() as c:
-                c.execute('INSERT INTO private_messages (user_id, sender, message) VALUES (?, ?, ?)', (user_id, 'admin', msg))
-        return redirect(url_for('admin_chat', user_id=user_id))
-        
-    with db() as c:
-        user = c.execute('SELECT * FROM users WHERE id=?', (user_id,)).fetchone()
-        if not user: abort(404)
-        messages = c.execute('SELECT * FROM private_messages WHERE user_id=? ORDER BY id ASC', (user_id,)).fetchall()
-        c.execute('UPDATE private_messages SET is_read=1 WHERE user_id=? AND sender="user"', (user_id,))
-        c.commit()
-    return render_template('admin_chat.html', user=user, messages=messages)
-
 if __name__ == '__main__':
-    from setup_db import init_db
-    init_db()
     app.run(host='0.0.0.0', port=5000, debug=True)
