@@ -1,0 +1,76 @@
+{% extends 'base.html' %}{% block content %}
+<section class="panel" style="text-align:center;max-width:480px;margin:30px auto">
+    <h2>NUMBER LOOKUP</h2>
+    <p class="muted">Real API Data</p>
+    <form method="post">
+        <input name="number" inputmode="numeric" placeholder="Enter 10-digit number" required>
+        <button>SEARCH</button>
+    </form>
+
+    {% if result %}
+        {% if result.data %}
+            
+            <!-- Master Copy Button -->
+            <div style="display: flex; justify-content: flex-end; margin-top: 20px; padding: 0 10px;">
+                <button onclick="copyAll()" style="background: transparent; border: none; padding: 5px; cursor: pointer; color: #fff;" title="Copy All Records">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </button>
+            </div>
+
+            {% for record in result.data %}
+                <div class="panel" style="text-align:left; margin-top: 15px; border-color: #555; font-family: monospace, sans-serif;">
+                    <div style="margin-bottom: 10px; font-weight: bold; font-size: 14px; border-bottom: 1px solid #333; padding-bottom: 5px;">Record {{ loop.index }}</div>
+                    
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">├🪪 ᴀᴀᴅʜᴀᴀʀ: <span style="color:#fff;">{{ record.aadhar or 'N/A' }}</span></div>
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">├📱 ᴍᴏʙɪʟᴇ: <span style="color:#fff;">{{ record.mobile or 'N/A' }}</span></div>
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">├👤 ɴᴀᴍᴇ: <span style="color:#fff;">{{ record.name or 'N/A' }}</span></div>
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">├👨 ꜰᴀᴛʜᴇʀ: <span style="color:#fff;">{{ record.father_name or 'N/A' }}</span></div>
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">├🏠 ᴀᴅᴅʀᴇꜱꜱ: <span style="color:#fff;">{{ record.address or 'N/A' }}</span></div>
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">├📲 ᴀʟᴛ ᴍᴏʙɪʟᴇ: <span style="color:#fff;">{{ record.alternate or 'N/A' }}</span></div>
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">└📡 ᴄɪʀᴄʟᴇ: <span style="color:#fff;">{{ record.circle or 'N/A' }}</span></div>
+                </div>
+            {% endfor %}
+            
+            <!-- Bottom Developer Line -->
+            <div style="text-align: center; margin-top: 25px; font-size: 13px; color: #aaa; font-family: monospace;">
+                🛠️ ᴅᴇᴠᴇʟᴏᴘᴇʀ: ᴀᴋᴀꜱʜ ᴏꜱɪɴᴛ •🛰️
+            </div>
+
+            <!-- Hidden div for copying all data formatted -->
+            <textarea id="allDataText" style="display:none;">
+{% for record in result.data %}
+├🪪 ᴀᴀᴅʜᴀᴀʀ: {{ record.aadhar or 'N/A' }}
+├📱 ᴍᴏʙɪʟᴇ: {{ record.mobile or 'N/A' }}
+├👤 ɴᴀᴍᴇ: {{ record.name or 'N/A' }}
+├👨 ꜰᴀᴛʜᴇʀ: {{ record.father_name or 'N/A' }}
+├🏠 ᴀᴅᴅʀᴇꜱꜱ: {{ record.address or 'N/A' }}
+├📲 ᴀʟᴛ ᴍᴏʙɪʟᴇ: {{ record.alternate or 'N/A' }}
+└📡 ᴄɪʀᴄʟᴇ: {{ record.circle or 'N/A' }}
+
+{% endfor %}
+🛠️ ᴅᴇᴠᴇʟᴏᴘᴇʀ: ᴀᴋᴀꜱʜ ᴏꜱɪɴᴛ •🛰️
+            </textarea>
+            
+        {% else %}
+            <div class="flash" style="margin-top:15px;">No data found for this number.</div>
+        {% endif %}
+    {% endif %}
+</section>
+<div class="foot">AKASH OSINT</div>
+
+<script>
+function copyAll() {
+    const textArea = document.getElementById("allDataText");
+    if (!textArea) return;
+    const textToCopy = textArea.value.trim();
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        alert("All records copied successfully!");
+    }).catch(err => {
+        console.error('Failed to copy: ', err);
+    });
+}
+</script>
+{% endblock %}

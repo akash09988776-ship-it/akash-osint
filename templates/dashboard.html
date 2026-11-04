@@ -1,0 +1,55 @@
+{% extends 'base.html' %}{% block content %}
+<section class="panel" style="text-align:center;max-width:480px;margin:30px auto">
+    <h2>NUMBER LOOKUP</h2>
+    <form method="post">
+        <input name="number" inputmode="numeric" placeholder="Enter 10-digit number" required>
+        <button>SEARCH</button>
+    </form>
+
+    {% if result %}
+        {% if result.data %}
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding: 0 10px;">
+                <p class="muted" style="margin: 0;">Total: {{ result.data|length }}</p>
+                
+                <!-- Clean SVG Copy Icon -->
+                <button onclick="copyAll()" style="background: transparent; border: none; cursor: pointer; color: #fff; padding: 5px;" title="Copy All">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </button>
+            </div>
+
+            {% for record in result.data %}
+                <div class="panel" style="text-align:left; margin-top: 15px; border-color: #555; font-family: monospace, sans-serif;">
+                    <div style="margin-bottom: 10px; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 5px;">Record {{ loop.index }}</div>
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">├🪪 ᴀᴀᴅʜᴀᴀʀ: <span style="color:#fff;">{{ record.aadhar or 'N/A' }}</span></div>
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">├📱 ᴍᴏʙɪʟᴇ: <span style="color:#fff;">{{ record.mobile or 'N/A' }}</span></div>
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">├👤 ɴᴀᴍᴇ: <span style="color:#fff;">{{ record.name or 'N/A' }}</span></div>
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">├👨 ꜰᴀᴛʜᴇʀ: <span style="color:#fff;">{{ record.father_name or 'N/A' }}</span></div>
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">├🏠 ᴀᴅᴅʀᴇꜱꜱ: <span style="color:#fff;">{{ record.address or 'N/A' }}</span></div>
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">├📲 ᴀʟᴛ ᴍᴏʙɪʟᴇ: <span style="color:#fff;">{{ record.alternate or 'N/A' }}</span></div>
+                    <div class="muted" style="margin: 6px 0; font-size: 13px;">└📡 ᴄɪʀᴄʟᴇ: <span style="color:#fff;">{{ record.circle or 'N/A' }}</span></div>
+                </div>
+            {% endfor %}
+            <div style="text-align: center; margin-top: 25px; font-size: 13px; color: #aaa; font-family: monospace;">🛠️ ᴅᴇᴠᴇʟᴏᴘᴇʀ: ᴀᴋᴀꜱʜ ᴏꜱɪɴᴛ •🛰️</div>
+            <textarea id="allDataText" style="display:none;">{% for record in result.data %}
+├🪪 ᴀᴀᴅʜᴀᴀʀ: {{ record.aadhar or 'N/A' }}
+├📱 ᴍᴏʙɪʟᴇ: {{ record.mobile or 'N/A' }}
+├👤 ɴᴀᴍᴇ: {{ record.name or 'N/A' }}
+├👨 ꜰᴀᴛʜᴇʀ: {{ record.father_name or 'N/A' }}
+├🏠 ᴀᴅᴅʀᴇꜱꜱ: {{ record.address or 'N/A' }}
+├📲 ᴀʟᴛ ᴍᴏʙɪʟᴇ: {{ record.alternate or 'N/A' }}
+└📡 ᴄɪʀᴄʟᴇ: {{ record.circle or 'N/A' }}
+{% endfor %}</textarea>
+        {% else %}
+            <div class="flash" style="margin-top:15px;">No data found.</div>
+        {% endif %}
+    {% endif %}
+</section>
+<script>
+function copyAll() {
+    navigator.clipboard.writeText(document.getElementById("allDataText").value.trim()).then(() => alert("Copied!"));
+}
+</script>
+{% endblock %}

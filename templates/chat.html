@@ -1,0 +1,21 @@
+{% extends 'base.html' %}{% block content %}
+<h2>ᴀᴅᴍɪɴ ᴄᴏɴɴᴇᴄᴛ 📩</h2>
+<section class="panel" style="padding: 15px; background: #0a0a0a;">
+    {% for m in messages %}
+    <div class="msg {% if m.sender=='user' %}right{% endif %}" style="padding: 12px 0; border-bottom: 1px solid #222; text-align: {% if m.sender=='user' %}right{% else %}left{% endif %};">
+        <div style="font-size: 13px; font-weight: bold; color: {% if m.sender=='user' %}#4CAF50{% else %}#fff{% endif %}; margin-bottom: 5px;">
+            {{ 'You' if m.sender=='user' else 'Admin' }}
+        </div>
+        <div style="font-size: 14px; color: #ddd; line-height: 1.4; display: inline-block; background: {% if m.sender=='user' %}#1a3320{% else %}#222{% endif %}; padding: 10px; border-radius: 10px;">{{ m.message }}</div>
+        <div style="font-size: 10px; color: #666; margin-top: 4px;">{{ m.created_at[11:16] }}</div>
+    </div>
+    {% else %}
+    <p class="muted" style="text-align: center; padding: 20px;">No messages yet.</p>
+    {% endfor %}
+</section>
+<form method="post" style="display: flex; gap: 10px;">
+    <textarea name="message" placeholder="Message admin..." required style="min-height: 50px;"></textarea>
+    <button style="width: 60px; border-radius: 12px;">Send</button>
+</form>
+<p style="margin-top:45px"><a class="muted" href="{{url_for('dashboard')}}">↶ BACK</a></p>
+{% endblock %}

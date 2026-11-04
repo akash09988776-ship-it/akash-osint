@@ -1,0 +1,20 @@
+{% extends 'base.html' %}{% block content %}<section class="panel" style="text-align:center;max-width:480px;margin:30px auto"><h2>NUMBER LOOKUP</h2><p class="muted">Real API Data</p><form method="post"><input name="number" inputmode="numeric" placeholder="Enter 10-digit number" required><button>SEARCH</button></form>
+{% if result %}
+    {% if result.data %}
+        {% for record in result.data %}
+            <div class="panel" style="text-align:left; margin-top: 15px; border-color: #555;">
+                <div style="margin-bottom: 8px; font-weight: bold;">Record {{ loop.index }}</div>
+                <div class="muted" style="margin: 4px 0;">Name: <span style="color:#fff;">{{ record.name }}</span></div>
+                <div class="muted" style="margin: 4px 0;">Father: <span style="color:#fff;">{{ record.father_name }}</span></div>
+                <div class="muted" style="margin: 4px 0;">Mobile: <span style="color:#fff;">{{ record.mobile }}</span></div>
+                <div class="muted" style="margin: 4px 0;">Address: <span style="color:#fff;">{{ record.address }}</span></div>
+                <div class="muted" style="margin: 4px 0;">Aadhar: <span style="color:#fff;">{{ record.aadhar }}</span></div>
+                <div class="muted" style="margin: 4px 0;">Email: <span style="color:#fff;">{{ record.email }}</span></div>
+                <div class="muted" style="margin: 4px 0;">Circle: <span style="color:#fff;">{{ record.circle }}</span></div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <div class="flash" style="margin-top:15px;">No data found for this number.</div>
+    {% endif %}
+{% endif %}
+</section><div class="foot">AKASH OSINT</div>{% endblock %}
