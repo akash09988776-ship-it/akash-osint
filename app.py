@@ -1,4 +1,3 @@
-cat << 'EOF' > app.py
 import os, sqlite3, secrets, requests
 from functools import wraps
 from datetime import datetime, timedelta
@@ -12,15 +11,11 @@ UPLOAD_DIR = os.path.join(BASE, 'static', 'uploads')
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 app = Flask(__name__)
-# Render par SECRET_KEY 'a2027' set hai, toh woh uthayega
 app.secret_key = os.environ.get('SECRET_KEY', 'a2027')
 app.config['MAX_CONTENT_LENGTH'] = 3 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = UPLOAD_DIR
-
-# Login 30 din tak save rahega
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 
-# Admin Email aur Password (Render Environment se aayega, par yahan default bhi set kar diya)
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'akash@gmail.com')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'akash@2027')
 
@@ -57,20 +52,15 @@ def admin_required(fn):
         return fn(*a, **kw)
     return wrapper
 
-# === PWA FILES ROUTES ===
 @app.route('/logo.png')
-def serve_logo():
-    return send_from_directory(BASE, 'logo.png')
+def serve_logo(): return send_from_directory(BASE, 'logo.png')
 
 @app.route('/manifest.json')
-def serve_manifest():
-    return send_from_directory('static', 'manifest.json')
+def serve_manifest(): return send_from_directory('static', 'manifest.json')
 
 @app.route('/sw.js')
-def serve_sw():
-    return send_from_directory('static', 'sw.js')
+def serve_sw(): return send_from_directory('static', 'sw.js')
 
-# === APP ROUTES ===
 @app.route('/')
 def home():
     if not session.get('user_id'): return redirect(url_for('login'))
@@ -80,7 +70,7 @@ def home():
 def register():
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
-        email = request.form.get('email', '').strip().lower() # USER EMAIL
+        email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         if not name or not email or len(password) < 8:
             flash('Please fill all fields. Password must be 8+ chars.')
@@ -102,14 +92,12 @@ def login():
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         
-        # 1. ADMIN LOGIN CHECK (Email aur Password se)
         if email == ADMIN_EMAIL.lower() and secrets.compare_digest(password, ADMIN_PASSWORD):
             session.clear()
             session['role'] = 'admin'
             session.permanent = True
             return redirect('/admin')
             
-        # 2. USER LOGIN CHECK (Email aur Password se)
         with db() as c:
             user = c.execute('SELECT * FROM users WHERE username=?', (email,)).fetchone()
             if user and check_password_hash(user['password_hash'], password):
@@ -118,7 +106,6 @@ def login():
                 session['role'] = user['role']
                 session.permanent = True
                 return redirect('/dashboard')
-                
         flash('Invalid email or password.')
     return render_template('login.html')
 
@@ -157,7 +144,6 @@ def profile_photo():
         c.execute('UPDATE users SET photo=? WHERE id=?', (name, session['user_id']))
     return redirect(request.referrer or url_for('dashboard'))
 
-# ================= ADMIN PANEL =================
 @app.route('/admin')
 @admin_required
 def admin():
@@ -168,4 +154,3 @@ def admin():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
-EOF
