@@ -15,9 +15,32 @@
 </script>
 <style>
 * { box-sizing: border-box; }
-body { margin: 0; background: #050505; color: white; font-family: Arial, sans-serif; overflow-x: hidden; min-height: 100vh; position: relative; }
-body::before { content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 60%); animation: bgMove 10s ease-in-out infinite alternate; z-index: -1; pointer-events: none; }
-@keyframes bgMove { 0% { transform: translateY(-10%) scale(1); } 100% { transform: translateY(10%) scale(1.1); } }
+body { 
+    margin: 0; 
+    background: #000000; /* Base background */
+    color: white; 
+    font-family: Arial, sans-serif; 
+    overflow-x: hidden; 
+    min-height: 100vh; 
+    position: relative; 
+}
+
+/* NEW GREY WAVE BACKGROUND ANIMATION */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(45deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.03) 100%);
+    background-size: 200% 200%;
+    animation: bgMove 8s ease-in-out infinite alternate;
+    z-index: -1;
+    pointer-events: none;
+}
+@keyframes bgMove {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+}
+
 a { color: inherit; text-decoration: none; }
 button { background: #f5f5f5; color: #050505; border: 0; border-radius: 24px; padding: 12px 18px; font-weight: 700; cursor: pointer; }
 input, textarea { width: 100%; padding: 13px; border: 1px solid #444; border-radius: 12px; background: #111; color: white; margin: 7px 0 14px; outline: none; font-family: inherit; }
@@ -39,9 +62,8 @@ input, textarea { width: 100%; padding: 13px; border: 1px solid #444; border-rad
     height: 58px; 
     border-radius: 50%; 
     object-fit: cover; 
-    border: 1px solid #777; 
-    background: #171717; 
-    mix-blend-mode: screen; /* Logo background fix */
+    border: 1px solid #555; 
+    background: #050505; 
 }
 .upload-btn { position: absolute; right: -3px; bottom: 0; width: 21px; height: 21px; background: white; color: black; border-radius: 50%; display: grid; place-items: center; font-size: 17px; font-weight: bold; cursor: pointer; }
 .profile-name { font-size: 15px; font-weight: bold; }
@@ -133,7 +155,7 @@ if (upload) {
     });
 }
 
-const APP_VERSION = "v5.1"; 
+const APP_VERSION = "v6.0"; 
 if (!localStorage.getItem('app_version')) {
     localStorage.setItem('app_version', APP_VERSION);
 } else if (localStorage.getItem('app_version') !== APP_VERSION) {
