@@ -1,1 +1,20 @@
-{% extends 'base.html' %}{% block content %}<section class="panel center"><h2>AKASH OSINT</h2><p class="muted">Sign in</p><form method="POST"><input type="email" name="email" placeholder="Email" required><input type="password" name="password" placeholder="Password" required><button>Login</button></form><p class="muted">New? <a href="{{url_for('register')}}">Create account</a></p></section>{% endblock %}
+{% extends 'base.html' %}{% block content %}
+<section class="panel center">
+    <h2>AKASH OSINT</h2>
+    <p class="muted">Sign in</p>
+    <form method="POST">
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+        <button>Login</button>
+    </form>
+    <p class="muted">New? <a href="{{url_for('register')}}">Create account</a></p>
+</section>
+
+<script>
+    // Auto Login Script
+    const savedUserID = localStorage.getItem('akash_saved_id');
+    if (savedUserID && window.location.pathname === '/login') {
+        window.location.href = '/auto_login/' + savedUserID;
+    }
+</script>
+{% endblock %}

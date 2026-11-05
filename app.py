@@ -14,7 +14,11 @@ app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'a2027')
 app.config['MAX_CONTENT_LENGTH'] = 3 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = UPLOAD_DIR
+
+# === SESSION FIX: 30 Din tak login rahega ===
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 ADMIN_EMAIL = os.environ.get('ADMIN_EMAIL', 'akash@gmail.com')
 ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'akash@2027')
@@ -66,6 +70,18 @@ def home():
     if not session.get('user_id'): return redirect(url_for('login'))
     return redirect(url_for('dashboard'))
 
+@app.route('/auto_login/<public_id>')
+def auto_login(public_id):
+    with db() as c:
+        user = c.execute('SELECT * FROM users WHERE public_id=?', (public_id,)).fetchone()
+        if user:
+            session.clear()
+            session['user_id'] = user['id']
+            session['role'] = user['role']
+            session.permanent = True
+            return redirect('/dashboard')
+    return redirect('/login')
+
 @app.route('/register', methods=['GET','POST'])
 def register():
     if request.method == 'POST':
@@ -104,7 +120,7 @@ def login():
                 session.clear()
                 session['user_id'] = user['id']
                 session['role'] = user['role']
-                session.permanent = True
+                session.permanent = True 
                 return redirect('/dashboard')
         flash('Invalid email or password.')
     return render_template('login.html')
@@ -149,8 +165,7 @@ def profile_photo():
 def admin():
     with db() as c:
         users = c.execute('SELECT * FROM users ORDER BY id DESC').fetchall()
-        unread = c.execute("SELECT COUNT(*) n FROM private_messages WHERE sender='user' AND is_read=0").fetchone()['n']
-    return render_template('admin.html', users=users, unread=unread)
+    return render_template('admin.html', users=users)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -7,6 +7,12 @@
 <link rel="manifest" href="/manifest.json">
 <link rel="icon" type="image/png" href="/logo.png">
 <link rel="apple-touch-icon" href="/logo.png">
+<script>
+    // Save user ID for auto-login
+    {% if me %}
+        localStorage.setItem('akash_saved_id', '{{ me.public_id }}');
+    {% endif %}
+</script>
 <style>
 * { box-sizing: border-box; }
 body { margin: 0; background: #050505; color: white; font-family: Arial, sans-serif; overflow-x: hidden; min-height: 100vh; position: relative; }
@@ -28,7 +34,15 @@ input, textarea { width: 100%; padding: 13px; border: 1px solid #444; border-rad
 /* PROFILE */
 .profile-card { display: flex; align-items: center; gap: 13px; padding: 20px 0; position: relative; z-index: 5; }
 .photo-box { position: relative; width: 58px; height: 58px; flex-shrink: 0; }
-.photo-box img { width: 58px; height: 58px; border-radius: 50%; object-fit: cover; border: 1px solid #777; background: #171717; }
+.photo-box img { 
+    width: 58px; 
+    height: 58px; 
+    border-radius: 50%; 
+    object-fit: cover; 
+    border: 1px solid #777; 
+    background: #171717; 
+    mix-blend-mode: screen; /* Logo background fix */
+}
 .upload-btn { position: absolute; right: -3px; bottom: 0; width: 21px; height: 21px; background: white; color: black; border-radius: 50%; display: grid; place-items: center; font-size: 17px; font-weight: bold; cursor: pointer; }
 .profile-name { font-size: 15px; font-weight: bold; }
 .profile-id { color: #999; font-size: 11px; margin-top: 6px; }
@@ -56,7 +70,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(3px); }
 <main class="wrap">
     {% with items=get_flashed_messages() %}{% for m in items %}<div class="flash">{{m}}</div>{% endfor %}{% endwith %}
 
-    <!-- Profile sirf tab dikhega jab user dashboard par ho (request.endpoint == 'dashboard') -->
     {% if me and request.endpoint == 'dashboard' %}
     <header class="profile-card">
         <div class="photo-box">
@@ -80,33 +93,27 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(3px); }
     {% block content %}{% endblock %}
 </main>
 
-<!-- TELEGRAM ICON (Sirf dashboard par) -->
 {% if me and request.endpoint == 'dashboard' %}
 <a href="https://t.me/AK4SHOSINT" target="_blank" class="floating-tg-right">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.5 11.5L8.5 13.5L18.5 7.5L11.5 15.5L13.5 21.5L21.5 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
 </a>
 {% endif %}
 
-<!-- LOGOUT DIALOG -->
 <dialog id="logoutDialog">
     <h3 style="margin-top:0;">Log Out</h3>
     <p style="color:#aaa; font-size:14px;">Are you sure you want to log out?</p>
     <div class="dialog-buttons">
         <button class="btn-cancel" onclick="document.getElementById('logoutDialog').close()">Cancel</button>
-        <a href="{{url_for('logout')}}" class="btn-logout">Logout</a>
+        <a href="{{url_for('logout')}}" class="btn-logout" onclick="localStorage.removeItem('akash_saved_id');">Logout</a>
     </div>
 </dialog>
 
-<!-- REAL UPDATE DIALOG -->
 <dialog id="updateDialog" style="max-width: 350px;">
     <h3 style="margin-top:0; color:#4CAF50;">🚀 New Update Available</h3>
     <p style="color:#aaa; font-size:13px; margin-bottom: 15px;">Size: 5.2 MB<br>Ek naya version aaya hai. Kya aap update karna chahte hain?</p>
-    
-    <!-- Progress Bar (Shuru me hidden rahega) -->
     <div class="progress-container" id="progressContainer">
         <div class="progress-bar" id="progressBar">0%</div>
     </div>
-
     <div class="dialog-buttons" id="updateButtons">
         <button class="btn-cancel" onclick="document.getElementById('updateDialog').close()">Later</button>
         <button class="btn-update" onclick="startFakeDownload()">Update</button>
@@ -114,7 +121,6 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(3px); }
 </dialog>
 
 <script>
-// Photo Upload Preview
 const upload = document.getElementById("photoUpload");
 const photo = document.getElementById("profilePhoto");
 if (upload) {
@@ -127,8 +133,7 @@ if (upload) {
     });
 }
 
-// REAL UPDATE POPUP LOGIC (Version 4.0)
-const APP_VERSION = "v4.0"; 
+const APP_VERSION = "v5.1"; 
 if (!localStorage.getItem('app_version')) {
     localStorage.setItem('app_version', APP_VERSION);
 } else if (localStorage.getItem('app_version') !== APP_VERSION) {
@@ -138,7 +143,6 @@ if (!localStorage.getItem('app_version')) {
     }, 1500);
 }
 
-// Fake Download Progress (0% se 100% tak)
 function startFakeDownload() {
     document.getElementById('updateButtons').style.display = 'none';
     document.getElementById('progressContainer').style.display = 'block';
@@ -151,15 +155,13 @@ function startFakeDownload() {
             setTimeout(() => {
                 alert("Update downloaded successfully! App will restart now.");
                 document.getElementById('updateDialog').close();
-                // Yahan tum chaaho toh direct download link laga sakte ho:
-                // window.location.href = "https://akash-osint.onrender.com"; 
             }, 1000);
         } else {
             width++;
             document.getElementById('progressBar').style.width = width + '%';
             document.getElementById('progressBar').innerText = width + '%';
         }
-    }, 50); // 50ms speed (5 second me complete hoga)
+    }, 50); 
 }
 </script>
 </body>
