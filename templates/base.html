@@ -1,4 +1,3 @@
-cat << 'EOF' > templates/base.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -93,7 +92,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(3px); }
     </div>
 </dialog>
 
-<!-- UPDATE DIALOG (Naya Update aane par dikhega) -->
+<!-- UPDATE DIALOG -->
 <dialog id="updateDialog">
     <h3 style="margin-top:0; color:#4CAF50;">🚀 Update Available</h3>
     <p style="color:#aaa; font-size:14px;">Ek naya version available hai. Kya aap update karna chahte hain?</p>
@@ -117,17 +116,16 @@ if (upload) {
     });
 }
 
-// Update Popup Logic (Sirf 1 baar dikhega har naye version par)
-const APP_VERSION = "v2.0"; // Agar naya update aaye toh isko v2.1, v3.0 karna
+// Update Popup Logic (Version 3.0)
+const APP_VERSION = "v3.0"; // Naya version
 if (!localStorage.getItem('app_version')) {
     localStorage.setItem('app_version', APP_VERSION);
 } else if (localStorage.getItem('app_version') !== APP_VERSION) {
     setTimeout(() => {
         document.getElementById('updateDialog').showModal();
         localStorage.setItem('app_version', APP_VERSION);
-    }, 2000);
+    }, 1500);
 }
 </script>
 </body>
 </html>
-EOF
