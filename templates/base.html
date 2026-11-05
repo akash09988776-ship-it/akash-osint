@@ -1,41 +1,18 @@
+cat << 'EOF' > templates/base.html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <title>AKASH OSINT</title>
-<link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+<link rel="manifest" href="/manifest.json">
+<link rel="icon" type="image/png" href="/logo.png">
+<link rel="apple-touch-icon" href="/logo.png">
 <style>
 * { box-sizing: border-box; }
-body { 
-    margin: 0; 
-    background: #050505; 
-    color: white; 
-    font-family: Arial, sans-serif; 
-    overflow-x: hidden; 
-    min-height: 100vh; 
-    position: relative;
-}
-
-/* Background Animation */
-body::before {
-    content: '';
-    position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 60%);
-    animation: bgMove 10s ease-in-out infinite alternate;
-    z-index: -1;
-    pointer-events: none;
-}
-
-@keyframes bgMove {
-    0% { transform: translateY(-10%) scale(1); }
-    100% { transform: translateY(10%) scale(1.1); }
-}
-
+body { margin: 0; background: #050505; color: white; font-family: Arial, sans-serif; overflow-x: hidden; min-height: 100vh; position: relative; }
+body::before { content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08) 0%, transparent 60%); animation: bgMove 10s ease-in-out infinite alternate; z-index: -1; pointer-events: none; }
+@keyframes bgMove { 0% { transform: translateY(-10%) scale(1); } 100% { transform: translateY(10%) scale(1.1); } }
 a { color: inherit; text-decoration: none; }
 button { background: #f5f5f5; color: #050505; border: 0; border-radius: 24px; padding: 12px 18px; font-weight: 700; cursor: pointer; }
 input, textarea { width: 100%; padding: 13px; border: 1px solid #444; border-radius: 12px; background: #111; color: white; margin: 7px 0 14px; outline: none; font-family: inherit; }
@@ -57,43 +34,19 @@ input, textarea { width: 100%; padding: 13px; border: 1px solid #444; border-rad
 .profile-name { font-size: 15px; font-weight: bold; }
 .profile-id { color: #999; font-size: 11px; margin-top: 6px; }
 
-/* === TELEGRAM ICON (Fixed Right Side, Bot Style) === */
-.floating-tg-right {
-    position: fixed;
-    right: 15px;  /* Right side */
-    bottom: 20px; /* Niche */
-    width: 45px;  /* Chhota size */
-    height: 45px; /* Chhota size */
-    background: #fff;
-    color: #000;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 4px 15px rgba(255,255,255,0.2);
-    z-index: 1000;
-    transition: transform 0.2s;
-}
+/* TELEGRAM ICON (Right Side) */
+.floating-tg-right { position: fixed; right: 15px; bottom: 20px; width: 45px; height: 45px; background: #fff; color: #000; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(255,255,255,0.2); z-index: 1000; transition: transform 0.2s; }
 .floating-tg-right:active { transform: scale(0.9); }
 .floating-tg-right svg { width: 22px; height: 22px; margin-left: -2px; }
 
-/* Dialog Box styling */
-dialog {
-    background: #111;
-    color: white;
-    border: 1px solid #444;
-    border-radius: 16px;
-    padding: 20px;
-    width: 80%;
-    max-width: 320px;
-    text-align: center;
-    box-shadow: 0 0 40px rgba(0,0,0,0.8);
-}
+/* DIALOGS */
+dialog { background: #111; color: white; border: 1px solid #444; border-radius: 16px; padding: 20px; width: 80%; max-width: 320px; text-align: center; box-shadow: 0 0 40px rgba(0,0,0,0.8); }
 dialog::backdrop { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(3px); }
 .dialog-buttons { display: flex; justify-content: space-between; gap: 10px; margin-top: 20px; }
-.dialog-buttons button { flex: 1; border-radius: 12px; padding: 10px; }
+.dialog-buttons button, .dialog-buttons a { flex: 1; border-radius: 12px; padding: 10px; font-weight: bold; border: none; cursor: pointer; font-size: 14px; text-align: center; }
 .btn-cancel { background: #333; color: #fff; }
-.btn-logout { background: #dc3545; color: #fff; font-weight: bold; }
+.btn-logout { background: #dc3545; color: #fff; }
+.btn-update { background: #4CAF50; color: #fff; display: inline-block; line-height: 24px; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -103,7 +56,7 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(3px); }
     {% if me %}
     <header class="profile-card">
         <div class="photo-box">
-            <img id="profilePhoto" src="{{ url_for('static', filename='uploads/' + me['photo']) if me['photo'] else '' }}" onerror="this.src='https://placehold.co/100x100/171717/ffffff?text=+'">
+            <img id="profilePhoto" src="{{ url_for('static', filename='uploads/' + me['photo']) if me['photo'] else '' }}" onerror="this.src='/logo.png'">
             <form action="{{url_for('profile_photo')}}" method="post" enctype="multipart/form-data">
                 <label for="photoUpload" class="upload-btn">+</label>
                 <input type="file" id="photoUpload" name="photo" accept="image/*" hidden onchange="this.form.submit()">
@@ -123,24 +76,35 @@ dialog::backdrop { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(3px); }
     {% block content %}{% endblock %}
 </main>
 
-<!-- FLOATING TELEGRAM ICON (RIGHT SIDE, SMALL) -->
+<!-- TELEGRAM ICON (Right Side) -->
 {% if me %}
 <a href="https://t.me/AK4SHOSINT" target="_blank" class="floating-tg-right">
     <svg viewBox="0 0 24 24" fill="currentColor"><path d="M21.5 3.5L2.5 11.5L8.5 13.5L18.5 7.5L11.5 15.5L13.5 21.5L21.5 3.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>
 </a>
 {% endif %}
 
-<!-- LOGOUT CONFIRMATION DIALOG -->
+<!-- LOGOUT DIALOG -->
 <dialog id="logoutDialog">
     <h3 style="margin-top:0;">Log Out</h3>
     <p style="color:#aaa; font-size:14px;">Are you sure you want to log out?</p>
     <div class="dialog-buttons">
         <button class="btn-cancel" onclick="document.getElementById('logoutDialog').close()">Cancel</button>
-        <a href="{{url_for('logout')}}" class="btn-logout" style="text-align:center; text-decoration:none; line-height: 24px; border-radius: 12px; padding: 10px;">Logout</a>
+        <a href="{{url_for('logout')}}" class="btn-logout">Logout</a>
+    </div>
+</dialog>
+
+<!-- UPDATE DIALOG (Naya Update aane par dikhega) -->
+<dialog id="updateDialog">
+    <h3 style="margin-top:0; color:#4CAF50;">🚀 Update Available</h3>
+    <p style="color:#aaa; font-size:14px;">Ek naya version available hai. Kya aap update karna chahte hain?</p>
+    <div class="dialog-buttons">
+        <button class="btn-cancel" onclick="document.getElementById('updateDialog').close()">Later</button>
+        <a href="https://akash-osint.onrender.com" target="_blank" class="btn-update">Update</a>
     </div>
 </dialog>
 
 <script>
+// Photo Upload Preview
 const upload = document.getElementById("photoUpload");
 const photo = document.getElementById("profilePhoto");
 if (upload) {
@@ -152,6 +116,18 @@ if (upload) {
         reader.readAsDataURL(file);
     });
 }
+
+// Update Popup Logic (Sirf 1 baar dikhega har naye version par)
+const APP_VERSION = "v2.0"; // Agar naya update aaye toh isko v2.1, v3.0 karna
+if (!localStorage.getItem('app_version')) {
+    localStorage.setItem('app_version', APP_VERSION);
+} else if (localStorage.getItem('app_version') !== APP_VERSION) {
+    setTimeout(() => {
+        document.getElementById('updateDialog').showModal();
+        localStorage.setItem('app_version', APP_VERSION);
+    }, 2000);
+}
 </script>
 </body>
 </html>
+EOF
