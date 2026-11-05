@@ -9,9 +9,11 @@ BASE = os.path.abspath(os.path.dirname(__file__))
 DB_PATH = os.path.join(BASE, 'akash.db')
 UPLOAD_DIR = os.path.join(BASE, 'static', 'uploads')
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(32))
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = 86400 * 30  # 30 days tak login yaad rakhega
 app.config['MAX_CONTENT_LENGTH'] = 3 * 1024 * 1024
 app.config['UPLOAD_FOLDER'] = UPLOAD_DIR
 
@@ -43,6 +45,7 @@ def login_required(fn):
         if not session.get('user_id'): return redirect(url_for('login'))
         return fn(*a, **kw)
     return wrapper
+session.permanent = True
 
 def admin_required(fn):
     @wraps(fn)
